@@ -18,7 +18,7 @@ jobs:
       - name: Install Power BI Cmdlets
         run: |
           Install-Module -Name MicrosoftPowerBIMgmt -Force -Scope CurrentUser
-          Install-Module -Name SqlServer -Force -Scope CurrentUser
+          Install-Module -Name SqlServer -Force -Scope CurrentUser -AllowClobber
 
       - name: Deploy BIM to Fabric
         run: |
