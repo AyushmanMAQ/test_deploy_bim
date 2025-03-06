@@ -1,37 +1,49 @@
-name: Deploy BIM file
+name: Deploy BIM to Fabric
 
 on:
   push:
+    branches:
+      - main
     paths:
-      - 'DND - new copy.bim'
+      - 'DND - new copy.bim'  # Runs only when this file changes
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
-
+  deploy_bim:
+    runs-on: windows-latest  # Required for PowerShell deployment
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v2
-      with:
-        node-version: '14'
+      - name: Install Power BI Cmdlets
+        run: |
+          Install-Module -Name MicrosoftPowerBIMgmt -Force -Scope CurrentUser
+          Install-Module -Name SqlServer -Force -Scope CurrentUser
 
-    - name: Install dependencies
-      run: npm install
+      - name: Deploy BIM to Fabric
+        run: |
+          $ClientId = "cbc0c5f3-0578-4fc8-9be8-43392c766f61"
+          $ClientSecret = "ErN8Q~r6i-WYqsUi-uwOIWg.OJmSax-mGciv1cQi"
+          $TenantId = "e4d98dd2-9199-42e5-ba8b-da3e763ede2e"
+          $WorkspaceName = "Tungsten Automation"
+          $XmlaEndpoint = "powerbi://api.powerbi.com/v1.0/myorg/Tungsten Automation"
 
-    - name: Authenticate with Azure using Service Principal
-      run: |
-        az login --service-principal -u cbc0c5f3-0578-4fc8-9be8-43392c766f61 -p ErN8Q~r6i-WYqsUi-uwOIWg.OJmSax-mGciv1cQi --tenant e4d98dd2-9199-42e5-ba8b-da3e763ede2e
+          $SecurePassword = ConvertTo-SecureString -String $ClientSecret -AsPlainText -Force
+          $Credential = New-Object System.Management.Automation.PSCredential($ClientId, $SecurePassword)
 
-    - name: Deploy BIM file
-      run: |
-        # Custom deployment script or command here
-        echo "Deploying DND - new copy.bim to the Fabric workspace..."
-        # Example deployment command
-        # ./deploy-bim.sh "DND - new copy.bim"
+          # Authenticate to Power BI Service
+          Connect-AzAccount -ServicePrincipal -Tenant $TenantId -Credential $Credential
+          
+          # Deploy BIM using Invoke-ASCmd
+          $BimFileContent = Get-Content -Raw -Path "DND - new copy.bim"
+          $Command = @"
+          {
+            "createOrReplace": {
+              "object": {
+                "database": "DND - new copy"
+              },
+              "json": $BimFileContent
+            }
+          }
+          "@
 
-      env:
-        FABRIC_WORKSPACE: your-fabric-workspace-id
-        AUTH_TOKEN: your-auth-token
+          Invoke-ASCmd -Server $XmlaEndpoint -Query $Command
