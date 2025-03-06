@@ -21,6 +21,10 @@ jobs:
           Install-Module -Name MicrosoftPowerBIMgmt -Force -Scope CurrentUser
           Install-Module -Name SqlServer -Force -Scope CurrentUser -AllowClobber
 
+      - name: Uninstall AzureRM Module (if exists)
+        run: |
+          Uninstall-Module -Name AzureRM -Force -Scope CurrentUser
+
       - name: Deploy BIM to Fabric
         run: |
           $ClientId = "cbc0c5f3-0578-4fc8-9be8-43392c766f61"
@@ -35,8 +39,11 @@ jobs:
 
           # Authenticate to Power BI using Service Principal
           Import-Module Az
-          Connect-AzAccount -ServicePrincipal -Tenant $TenantId -Credential $Credential
-          
+          $AzAccount = Connect-AzAccount -ServicePrincipal -Tenant $TenantId -Credential $Credential
+
+          # Obtain Access Token for Power BI
+          $AccessToken = (Get-AzAccessToken -ResourceUrl "https://analysis.windows.net/powerbi/api").Token
+
           # Deploy BIM using Invoke-ASCmd
           $BimFileContent = Get-Content -Raw -Path "DND - new copy.bim"
           $Command = @"
@@ -50,4 +57,4 @@ jobs:
           }
           "@
 
-          Invoke-ASCmd -Server $XmlaEndpoint -Query $Command
+          Invoke-ASCmd -Server $XmlaEndpoint -AccessToken $AccessToken -Query $Command
