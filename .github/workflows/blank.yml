@@ -21,9 +21,9 @@ jobs:
           Install-Module -Name MicrosoftPowerBIMgmt -Force -Scope CurrentUser
           Install-Module -Name SqlServer -Force -Scope CurrentUser -AllowClobber
 
-      - name: Uninstall AzureRM Module (if exists)
-        run: |
-          Uninstall-Module -Name AzureRM -Force -Scope CurrentUser
+      # - name: Uninstall AzureRM Module (if exists)
+      #   run: |
+      #     Uninstall-Module -Name AzureRM -Force -Scope CurrentUser
 
       - name: Deploy BIM to Fabric
         run: |
