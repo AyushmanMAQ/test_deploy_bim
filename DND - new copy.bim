@@ -17,7 +17,7 @@
         "lineageTag": "7b5ac39c-8d46-4a4b-8e53-7afcd453bb69",
         "columns": [
           {
-            "name": "Store ID",
+            "name": "Store_ID",
             "dataType": "int64",
             "sourceColumn": "Store ID",
             "formatString": "0",
