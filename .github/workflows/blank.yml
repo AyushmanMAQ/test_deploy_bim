@@ -15,8 +15,9 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Install Power BI Cmdlets
+      - name: Install PowerShell Modules
         run: |
+          Install-Module -Name Az -Force -AllowClobber -Scope CurrentUser
           Install-Module -Name MicrosoftPowerBIMgmt -Force -Scope CurrentUser
           Install-Module -Name SqlServer -Force -Scope CurrentUser -AllowClobber
 
@@ -28,10 +29,12 @@ jobs:
           $WorkspaceName = "Tungsten Automation"
           $XmlaEndpoint = "powerbi://api.powerbi.com/v1.0/myorg/Tungsten Automation"
 
+          # Convert Client Secret to Secure String
           $SecurePassword = ConvertTo-SecureString -String $ClientSecret -AsPlainText -Force
           $Credential = New-Object System.Management.Automation.PSCredential($ClientId, $SecurePassword)
 
-          # Authenticate to Power BI Service
+          # Authenticate to Power BI using Service Principal
+          Import-Module Az
           Connect-AzAccount -ServicePrincipal -Tenant $TenantId -Credential $Credential
           
           # Deploy BIM using Invoke-ASCmd
