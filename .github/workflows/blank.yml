@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'DND - new copy.bim'  # Runs only when this file changes
+  workflow_dispatch:  # Allows manual trigger from GitHub Actions
 
 jobs:
   deploy_bim:
